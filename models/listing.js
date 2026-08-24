@@ -18,14 +18,15 @@ const listingSchema = new Schema({
     type: String,
    
    },
-   imageUrl:{
-    type: String,
-    default:"https://pixabay.com/images/search/copyright/",
-    set:(v) => 
-        v===""
-      ? "https://pixabay.com/images/search/copyright/"
-      :v,
-   },
+    image:{
+      type: String,
+      default:"https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=800&q=60",
+      set:(v) => {
+         if (v && typeof v === "object") return v.url;
+         return v === "" ? "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=800&q=60" : v;
+      },
+    },
+      imageurl: String,
    country:{
     type: String,
    
