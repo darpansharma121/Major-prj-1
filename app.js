@@ -5,7 +5,7 @@ const Listing= require('./models/listing');
 const path=require('path');
 const methodOverride=require("method-override")
 const ejsMate=require('ejs-mate');
-
+const wrapAsync = require("./utils/wrapAsync.js")
 
 
 
@@ -33,7 +33,10 @@ app.get('/',(req,res)=>{
 });
 
 app.get('/listings',async(req,res)=>{
-   const allListings = await Listing.find({});
+    const allListings = await Listing.find({});
+    allListings.forEach((listing) => {
+        if (listing.price === null) listing.price = 0;
+    });
     res.render('listings/index.ejs',{allListings});
 });
 
@@ -47,21 +50,26 @@ app.get('/listings/:id',async(req,res)=>{
     res.render("listings/show.ejs",{ listing });
 }); 
 
-app.post("/listings",async (req, res)=>{
-const newListing =new Listing(req.body.Listing);
+app.post("/listings", wrapAsync(async (req, res)=>{
+  
+      const newListing =new Listing(req.body.Listing);
 await newListing.save();
-res.redirect("/listings");
-});
+res.redirect("/listings");  
+    
+}));
 
 app.get("/listings/:id/edit",async (req,res)=>{
-    let {id}=req.params;
+    
+       let {id}=req.params;
     const listing =await Listing.findById(id);
-    res.render("listings/edit.ejs",{listing});
+    res.render("listings/edit.ejs",{listing});   
+   
+  
 });
 
 app.put("/listings/:id", async(req,res) =>{
       let {id}=req.params;
-    await Listing.findByIdAndUpdate(id,{...req.body.listing});
+        await Listing.findByIdAndUpdate(id,{...req.body.listing},{runValidators: true});
    res.redirect(`/listings/${id}`);
 });
 
@@ -86,6 +94,10 @@ res.redirect("/listings");
 //     res.send("Listing saved successfully");
         
 //  });
+
+app.use((err,req,res, next) => {
+res.send("Something went wrong!")
+});
 
 app.listen(3000,()=>{
     console.log('Server is running on port 3000');

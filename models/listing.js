@@ -8,15 +8,17 @@ const listingSchema = new Schema({
    },
    description:{
     type: String,
-   
+      required: true
    },
    price:{
     type: Number,
-    
+      required: true,
+      min: 0,
+      default: 0
    },
    location:{
     type: String,
-   
+      required: true
    },
     image:{
       type: String,
@@ -29,7 +31,7 @@ const listingSchema = new Schema({
       imageurl: String,
    country:{
     type: String,
-   
+      required: true
    }
 });
 module.exports=mongoose.model("listing",listingSchema);
