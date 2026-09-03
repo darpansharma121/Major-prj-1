@@ -7,7 +7,7 @@ const methodOverride=require("method-override")
 const ejsMate=require('ejs-mate');
 const wrapAsync = require("./utils/wrapAsync.js")
 const ExpressError= require("./utils/ExpressError.js")
-
+const {  listingSchema } = require("./schema.js");
 
 
 main()
@@ -33,6 +33,17 @@ app.get('/',(req,res)=>{
     res.send("kya reh bhik mangiye..!")
 });
 
+const validateListing=(req,res,next)=>{
+     let {error}= listingSchema.validate(req.body);
+ 
+  if(error){
+    let errMsg=error.details.map((el)=>el.message).join(",");
+    throw new ExpressError(400, errMsg);
+    }else{
+        next();
+    }
+};
+
 app.get('/listings',wrapAsync(async(req,res)=>{
     const allListings = await Listing.find({});
     allListings.forEach((listing) => {
@@ -51,13 +62,14 @@ app.get('/listings/:id',wrapAsync(async(req,res)=>{
     res.render("listings/show.ejs",{ listing });
 })); 
 
-app.post("/listings", wrapAsync(async (req, res)=>{
-  if(!req.body.listing){
-    throw new ExpressError(400, "Send valid data for listing")
-  }
-      const newListing =new Listing(req.body.Listing);
+app.post("/listings",
+     validateListing,
+     wrapAsync(async (req, res,next)=>{
+ 
+  const newListing = new Listing(req.body.listing);
+  
 await newListing.save();
-res.redirect("/listings");  
+res.redirect("/listings");   
     
 }));
 
@@ -70,10 +82,10 @@ app.get("/listings/:id/edit",wrapAsync(async (req,res)=>{
   
 }));
 
-app.put("/listings/:id", wrapAsync(async(req,res) =>{
-    if(!req.body.listing){
-    throw new ExpressError(400, "Send valid data for listing")
-  }
+app.put("/listings/:id", 
+    validateListing,
+    wrapAsync(async(req,res) =>{
+    
       let {id}=req.params;
         await Listing.findByIdAndUpdate(id,{...req.body.listing},{runValidators: true});
    res.redirect(`/listings/${id}`);
@@ -101,15 +113,14 @@ res.redirect("/listings");
         
 //  });
 
-app.all("*", (req,res,next)=>{
+app.all("/{*splat}", (req,res,next)=>{
     next(new ExpressError(404, "Page Not Found!"));
 })
 
-app.use((err,req,res, next) => {
-    let {statusCode=500, message="Something went wrong!"} =err;
- res.status(statusCode).render("error.ejs", {message})
-// res.status(statusCode).send(message)
-
+app.use((err, req, res, next) => {
+    let { statusCode = 500, message = "Something went wrong" } = err;
+    res.status(statusCode).render("error.ejs", { message });
+    // res.status(statusCode).send(message)
 });
 
 app.listen(3000,()=>{
