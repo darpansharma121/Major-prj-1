@@ -32,6 +32,12 @@ const listingSchema = new Schema({
    country:{
     type: String,
       required: true
-   }
+   },
+   reviews: [
+      {
+         type: Schema.Types.ObjectId,
+         ref: "Review",
+      },
+   ],
 });
 module.exports=mongoose.model("listing",listingSchema);
