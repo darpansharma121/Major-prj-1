@@ -8,7 +8,7 @@ const ejsMate=require('ejs-mate');
 const wrapAsync = require("./utils/wrapAsync.js")
 const ExpressError= require("./utils/ExpressError.js")
 const {  listingSchema } = require("./schema.js");
-
+const Review= require("./models/review.js");
 
 main()
 .then(()=>{
@@ -97,6 +97,19 @@ let deletedListing= await Listing.findByIdAndDelete(id)
 console.log("deleted");
 res.redirect("/listings");
 }));
+
+//Reviews
+app.post("/listings/:id/reviews",async (req, res)=>{
+let listing = await Listing.findById(req.params.id);
+let newReview= new Review(req.body.review);
+
+listing.reviews.push(newReview);
+await newReview.save();
+await listing.save();
+// res.redirect(`/listings/${listing._id}`)
+res.send("Review added successfully");
+});
+    
 
 //  app.get('/listings', async (req, res)=>{
 //     let sampleListing= new Listing({
