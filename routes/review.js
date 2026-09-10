@@ -29,7 +29,7 @@ res.redirect(`/listings/${listing._id}`)
 
 })); 
 
-// msznd f 
+
 // Delete reviews
 router.delete("/:reviewId", wrapAsync(async (req, res) => {
     let { id, reviewId } = req.params;
